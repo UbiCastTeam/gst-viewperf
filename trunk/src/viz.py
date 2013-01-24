@@ -73,8 +73,9 @@ class PipelineViz(Group, easyevent.User):
         item_list.reverse()
         for item in item_list:
             name = item.get_name()
-            if name.startswith("queue"):
-                queue_list.append({"name": name, "elt": item})
+            factory = item.get_factory().get_name()
+            if factory.startswith("queue"):
+                queue_list.append({"name": "queue_%s" %name, "elt": item})
                 #print "found queue"
             elif name.startswith("videorate"):
                 videorate_list.append({"name": name, "elt": item})
@@ -139,11 +140,16 @@ class GstElementWidget(Group, easyevent.User):
         easyevent.User.__init__(self)
         Group.__init__(self)
         self.name = name = element.get_name()
+        self.factory = element.get_factory().get_name()
+        if self.factory == 'queue':
+            self.name = name = 'queue_%s' %name
         self.gstelt = element
         if name.find("src") != -1:
             color = clutter.color_from_string("Blue")
         elif name.find("sink") != -1:
             color = clutter.color_from_string("LightBlue")
+        elif name.find("videorate") != -1:
+            color = clutter.color_from_string("Orange")
         else:
             color = clutter.color_from_string("Green")
         self.back = r = Rectangle(color)
@@ -187,13 +193,13 @@ class GstElementWidget(Group, easyevent.User):
             green = 255 - red
             color = Color(red, green, 0, 255)
             self.back.set_color(color)
-            self.label.set_text(text)
+        self.label.set_text(text)
 
     def evt_progress_report(self, event):
         name = event.content["name"]
         progress_s = event.content["progress_s"]
         if self.name == name:
-            text = "%s\nLate by: %s sec" %(name, progress_s)
+            text = "%s\n(%s)" %(name, progress_s)
             if int(progress_s) < 0 and int(progress_s) > -2:
                 self.back.set_color(clutter.color_from_string("Orange"))
             elif int(progress_s) <= -2:

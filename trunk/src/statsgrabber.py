@@ -18,8 +18,9 @@ class StatsGrabber(easyevent.User):
         fills = []
         # set_property_on_element example
         for queue in name_list:
-            fill_time = self.pipelinel.get_property_on_element(element_name=queue["name"], property_name="current-level-time")
-            max_time = self.pipelinel.get_property_on_element(element_name=queue["name"], property_name="max-size-time")
+            name = queue['name'].split('queue_')[1]
+            fill_time = self.pipelinel.get_property_on_element(element_name=name, property_name="current-level-time")
+            max_time = self.pipelinel.get_property_on_element(element_name=name, property_name="max-size-time")
             fill_percent = int((fill_time/float(max_time))*100)
             fills.append(fill_percent)
             self.launch_event("queue_state",{"name": queue["name"], "fill-state": fill_percent})
